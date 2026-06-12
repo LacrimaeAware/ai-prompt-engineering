@@ -1,0 +1,10 @@
+private/
+raw/
+local/
+*.log
+*.tmp
+.env
+.env.*
+*.db
+*.sqlite
+*.sqlite3
