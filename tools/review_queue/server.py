@@ -242,10 +242,11 @@ INDEX_HTML = r"""<!doctype html>
       gap: 5px;
       border: 1px solid var(--line);
       border-radius: 999px;
-      padding: 4px 9px;
-      background: var(--pill-bg);
+      padding: 6px 11px;
+      background: color-mix(in srgb, var(--axis-weak) 70%, var(--pill-bg));
       color: var(--text);
-      font-size: 13px;
+      font-size: 14px;
+      font-weight: 750;
     }
 
     .meta-chip span {
@@ -485,7 +486,8 @@ INDEX_HTML = r"""<!doctype html>
       overflow: auto;
       border: 1px solid color-mix(in srgb, var(--axis) 35%, var(--line));
       border-radius: 8px;
-      background: var(--panel);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--axis-weak) 72%, var(--panel)) 0, var(--panel) 240px);
       box-shadow: var(--shadow);
       padding: 14px;
     }
@@ -508,6 +510,13 @@ INDEX_HTML = r"""<!doctype html>
       flex: 1;
       min-height: 0;
       padding-right: 2px;
+    }
+
+    .choice-help {
+      float: right;
+      color: var(--muted);
+      font-weight: 800;
+      margin-left: 8px;
     }
 
     pre {
@@ -773,6 +782,16 @@ INDEX_HTML = r"""<!doctype html>
       }).join("");
     }
 
+    function optionLabel(item, option) {
+      const labels = item && item.option_labels;
+      return labels && labels[option] ? labels[option] : option;
+    }
+
+    function optionHelp(item, option) {
+      const help = item && item.option_help;
+      return help && help[option] ? help[option] : "";
+    }
+
     function renderSubject(item) {
       const subject = item && item.subject;
       $("subjectMeta").innerHTML = "";
@@ -945,7 +964,9 @@ INDEX_HTML = r"""<!doctype html>
       $("choices").innerHTML = options.map((option, idx) => {
         const shortcut = CHOICE_KEYS[idx] || String(idx + 1);
         const key = shortcut ? `<span class="key">${escapeHtml(shortcut.toUpperCase())}</span>` : "";
-        return `<button data-option-index="${idx}">${key}${escapeHtml(option)}</button>`;
+        const help = optionHelp(item, option);
+        const hint = help ? `<span class="choice-help" title="${escapeHtml(help)}">?</span>` : "";
+        return `<button data-option-index="${idx}" title="${escapeHtml(help)}">${key}${escapeHtml(optionLabel(item, option))}${hint}</button>`;
       }).join("");
       document.querySelectorAll("[data-option-index]").forEach(btn => {
         btn.addEventListener("click", () => answerChoice(Number(btn.dataset.optionIndex)));
