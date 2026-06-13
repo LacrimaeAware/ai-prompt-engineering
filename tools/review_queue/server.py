@@ -41,6 +41,8 @@ INDEX_HTML = r"""<!doctype html>
       --code-bg: #15171a;
       --code-text: #f6f8fa;
       --shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+      --axis: var(--accent);
+      --axis-weak: var(--accent-weak);
     }
 
     html[data-theme="dark"] {
@@ -61,6 +63,8 @@ INDEX_HTML = r"""<!doctype html>
       --code-bg: #090b0d;
       --code-text: #f1f3f5;
       --shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+      --axis: var(--accent);
+      --axis-weak: var(--accent-weak);
     }
 
     * { box-sizing: border-box; }
@@ -260,8 +264,8 @@ INDEX_HTML = r"""<!doctype html>
     }
 
     .message-box {
-      border-left: 4px solid var(--accent);
-      background: var(--accent-weak);
+      border-left: 4px solid var(--axis);
+      background: var(--axis-weak);
     }
 
     .message-text {
@@ -278,10 +282,22 @@ INDEX_HTML = r"""<!doctype html>
       overflow: auto;
     }
 
-    .chat-box {
+    .chat-box,
+    .marked-chat {
       background: #121314;
       color: #f2f2f2;
       border-color: #2c3035;
+    }
+
+    .marked-chat {
+      box-shadow: 0 0 0 2px var(--axis-weak);
+    }
+
+    .marked-chat .section-title {
+      color: #b9c0c9;
+    }
+
+    .chat-box {
       font-size: 17px;
       line-height: 1.38;
       padding: 9px 10px;
@@ -296,8 +312,8 @@ INDEX_HTML = r"""<!doctype html>
     }
 
     .chat-line.marked {
-      background: rgba(102, 166, 217, 0.18);
-      outline: 1px solid rgba(102, 166, 217, 0.4);
+      background: color-mix(in srgb, var(--axis) 28%, transparent);
+      outline: 1px solid color-mix(in srgb, var(--axis) 60%, transparent);
     }
 
     .chat-author {
@@ -467,7 +483,7 @@ INDEX_HTML = r"""<!doctype html>
     .review-right {
       min-height: 0;
       overflow: auto;
-      border: 1px solid var(--line);
+      border: 1px solid color-mix(in srgb, var(--axis) 35%, var(--line));
       border-radius: 8px;
       background: var(--panel);
       box-shadow: var(--shadow);
@@ -636,6 +652,15 @@ INDEX_HTML = r"""<!doctype html>
       hostility: "Low/none = not hostile. Mild/mock = teasing, mockery, casual insult. Present = direct hostility or aggressive attack.",
       shock_attention: "Present = shock value or attention-bid energy is the point. Low/none = ordinary chat, even if rude or dumb."
     };
+    const AXIS_COLORS = {
+      validity: ["#2f80ed", "#eaf3ff"],
+      literal_alignment: ["#9b51e0", "#f3eaff"],
+      magnitude_distortion: ["#f2994a", "#fff3e8"],
+      play_frame: ["#27ae60", "#e9f8ef"],
+      masking_facework: ["#eb5757", "#ffeded"],
+      hostility: ["#d97706", "#fff2d9"],
+      shock_attention: ["#e84393", "#ffeaf5"]
+    };
     const USER_COLORS = [
       "#ff4f5f", "#ff9f1c", "#ffd166", "#06d6a0", "#2ee86f", "#00d1ff",
       "#3a86ff", "#7b61ff", "#b967ff", "#ff70a6", "#4dd599", "#f72585",
@@ -694,6 +719,13 @@ INDEX_HTML = r"""<!doctype html>
       if (!item) return "";
       const axis = item.subject && item.subject.axis;
       return item.guidance || AXIS_HELP[axis] || item.question || "";
+    }
+
+    function applyAxisColor(item) {
+      const axis = item && item.subject && item.subject.axis;
+      const [strong, weak] = AXIS_COLORS[axis] || ["var(--accent)", "var(--accent-weak)"];
+      document.documentElement.style.setProperty("--axis", strong);
+      document.documentElement.style.setProperty("--axis-weak", weak);
     }
 
     function hashString(value) {
@@ -895,6 +927,7 @@ INDEX_HTML = r"""<!doctype html>
       }
 
       const source = item._queue ? ` | ${item._queue}` : "";
+      applyAxisColor(item);
       $("itemMeta").textContent = `${state.index + 1} / ${state.items.length}${source} | ${item.id || "(no id)"} | ${item.answer_status || "pending"}`;
       setSaveStatus(item.draft_saved_at ? `Draft saved ${item.draft_saved_at}` : "");
       $("question").textContent = displayQuestion(item);
