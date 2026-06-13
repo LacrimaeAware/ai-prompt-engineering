@@ -69,12 +69,14 @@ INDEX_HTML = r"""<!doctype html>
       background: var(--bg);
       color: var(--text);
       font: 15px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      height: 100vh;
+      overflow: hidden;
     }
 
     header {
       border-bottom: 1px solid var(--line);
       background: var(--panel);
-      padding: 12px 18px;
+      padding: 9px 14px;
       display: flex;
       gap: 14px;
       align-items: center;
@@ -97,6 +99,48 @@ INDEX_HTML = r"""<!doctype html>
       flex-wrap: wrap;
     }
 
+    .queue-drawer {
+      position: relative;
+      min-width: min(620px, 100%);
+    }
+
+    .queue-drawer summary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 11px;
+      background: var(--control);
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .queue-drawer summary::-webkit-details-marker { display: none; }
+
+    .queue-title {
+      font-weight: 800;
+    }
+
+    .queue-summary {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .queue-controls {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      width: min(880px, calc(100vw - 28px));
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      z-index: 5;
+    }
+
     select, button, textarea, input {
       font: inherit;
     }
@@ -116,17 +160,20 @@ INDEX_HTML = r"""<!doctype html>
     }
 
     main {
-      max-width: 980px;
-      margin: 20px auto 56px;
+      max-width: none;
+      height: calc(100vh - 58px);
+      margin: 0;
       padding: 0 16px;
+      overflow: hidden;
     }
 
     .card {
       background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-      padding: 20px;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 14px 0;
+      height: 100%;
     }
 
     .status-row {
@@ -158,9 +205,9 @@ INDEX_HTML = r"""<!doctype html>
     }
 
     .question {
-      font-size: 24px;
+      font-size: 22px;
       line-height: 1.2;
-      margin: 6px 0 14px;
+      margin: 0;
       font-weight: 750;
     }
 
@@ -212,6 +259,11 @@ INDEX_HTML = r"""<!doctype html>
       background: var(--control-alt);
     }
 
+    .message-box {
+      border-left: 4px solid var(--accent);
+      background: var(--accent-weak);
+    }
+
     .message-text {
       font-size: 20px;
       line-height: 1.28;
@@ -222,8 +274,52 @@ INDEX_HTML = r"""<!doctype html>
     .context-box {
       white-space: pre-wrap;
       overflow-wrap: anywhere;
-      max-height: 360px;
+      max-height: none;
       overflow: auto;
+    }
+
+    .chat-box {
+      background: #121314;
+      color: #f2f2f2;
+      border-color: #2c3035;
+      font-size: 17px;
+      line-height: 1.38;
+      padding: 9px 10px;
+    }
+
+    .chat-line {
+      display: grid;
+      grid-template-columns: minmax(88px, max-content) 1fr;
+      gap: 8px;
+      padding: 3px 5px;
+      border-radius: 4px;
+    }
+
+    .chat-line.marked {
+      background: rgba(102, 166, 217, 0.18);
+      outline: 1px solid rgba(102, 166, 217, 0.4);
+    }
+
+    .chat-author {
+      font-weight: 800;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .chat-author::after {
+      content: ":";
+      color: inherit;
+    }
+
+    .chat-message {
+      color: #f6f6f6;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .marked-chat .chat-line {
+      grid-template-columns: minmax(120px, max-content) 1fr;
+      font-size: 19px;
     }
 
     .details-box {
@@ -266,7 +362,7 @@ INDEX_HTML = r"""<!doctype html>
 
     .choices {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      grid-template-columns: 1fr;
       gap: 10px;
       margin-top: 14px;
     }
@@ -356,6 +452,46 @@ INDEX_HTML = r"""<!doctype html>
       display: grid;
       grid-template-columns: 1fr;
       gap: 16px;
+      height: 100%;
+    }
+
+    .review-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.65fr);
+      gap: 14px;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .review-left,
+    .review-right {
+      min-height: 0;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .review-right {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 86px);
+    }
+
+    .review-right .choices {
+      margin-top: 8px;
+    }
+
+    .right-scroll {
+      overflow: auto;
+      flex: 1;
+      min-height: 0;
+      padding-right: 2px;
     }
 
     pre {
@@ -371,17 +507,32 @@ INDEX_HTML = r"""<!doctype html>
     .hidden { display: none; }
     .muted { color: var(--muted); }
     .small { font-size: 13px; }
+
+    @media (max-width: 900px) {
+      body { overflow: auto; height: auto; }
+      main { height: auto; overflow: visible; padding: 0 10px 24px; }
+      header { position: static; }
+      .review-grid { grid-template-columns: 1fr; height: auto; }
+      .review-left, .review-right { overflow: visible; max-height: none; }
+      .review-right { position: static; }
+      .queue-controls { position: static; width: calc(100vw - 28px); margin-top: 8px; }
+    }
   </style>
 </head>
 <body>
   <header>
-    <div class="bar">
-      <h1>Review Queue</h1>
-      <select id="queueSelect" aria-label="Queue"></select>
-      <select id="itemSelect" aria-label="Question"></select>
-      <button id="reloadBtn" class="secondary">Reload</button>
-      <button id="themeBtn" class="secondary">Dark</button>
-    </div>
+    <details class="queue-drawer" id="queueDrawer">
+      <summary>
+        <span class="queue-title">Review Queue</span>
+        <span class="queue-summary" id="queueSummary">Loading...</span>
+      </summary>
+      <div class="bar queue-controls">
+        <select id="queueSelect" aria-label="Queue"></select>
+        <select id="itemSelect" aria-label="Question"></select>
+        <button id="reloadBtn" class="secondary">Reload</button>
+        <button id="themeBtn" class="secondary">Dark</button>
+      </div>
+    </details>
     <div class="bar small muted">
       <span>Keys: Q W E R... choices</span>
       <span>A previous</span>
@@ -392,46 +543,55 @@ INDEX_HTML = r"""<!doctype html>
 
   <main class="split">
     <section class="card" id="card">
-      <div class="status-row" id="status"></div>
-      <div class="muted small" id="itemMeta"></div>
-      <div class="muted small" id="saveStatus"></div>
-      <div class="question-row">
-        <div class="question" id="question">Loading...</div>
-        <button id="helpBtn" class="secondary help-btn" title="Show guidance">?</button>
-      </div>
-      <div class="guidance-box hidden" id="guidance"></div>
-      <div class="subject-grid">
-        <div class="subject-meta" id="subjectMeta"></div>
-        <div class="message-box">
-          <div class="section-title">Marked message</div>
-          <div class="message-text" id="messageText"></div>
-        </div>
-        <div id="contextWrap">
-          <div class="section-title">Chat context</div>
-          <div class="context-box" id="contextText"></div>
-        </div>
-        <div class="details-box hidden" id="subjectDetails"></div>
-      </div>
+      <div class="review-grid">
+        <section class="review-left" id="reviewLeft">
+          <div class="muted small" id="itemMeta"></div>
+          <div class="question-row">
+            <div class="question" id="question">Loading...</div>
+            <button id="helpBtn" class="secondary help-btn" title="Show guidance">?</button>
+          </div>
+          <div class="guidance-box hidden" id="guidance"></div>
+          <div class="subject-grid">
+            <div class="subject-meta" id="subjectMeta"></div>
+            <div class="message-box marked-chat">
+              <div class="section-title">Marked message</div>
+              <div class="message-text" id="messageText"></div>
+            </div>
+            <div id="contextWrap">
+              <div class="section-title">Chat context</div>
+              <div class="context-box chat-box" id="contextText"></div>
+            </div>
+            <div class="details-box hidden" id="subjectDetails"></div>
+          </div>
+        </section>
 
-      <div id="evidenceWrap">
-        <div class="section-title">Context from source</div>
-        <ul class="evidence" id="evidence"></ul>
-      </div>
+        <aside class="review-right" id="reviewRight">
+          <div class="right-scroll" id="rightScroll">
+            <div class="status-row" id="status"></div>
+            <div class="muted small" id="saveStatus"></div>
 
-      <div class="section-title">Choices</div>
-      <div class="choices" id="choices"></div>
+            <div class="section-title">Choices</div>
+            <div class="choices" id="choices"></div>
 
-      <div class="note-area">
-        <label class="small muted" for="note">Your answer / notes</label>
-        <textarea id="note" placeholder="Type freely here. This autosaves as you type."></textarea>
-      </div>
+            <div class="note-area">
+              <label class="small muted" for="note">Your answer / notes</label>
+              <textarea id="note" placeholder="Type freely here. This autosaves as you type."></textarea>
+            </div>
 
-      <div class="actions">
-        <button id="useNoteBtn" class="secondary">Use typed answer</button>
-        <button id="prevBtn" class="secondary"><span class="key">A</span>Previous</button>
-        <button id="skipBtn" class="secondary"><span class="key">S</span>Park</button>
-        <button id="nextBtn" class="secondary"><span class="key">D</span>Next</button>
-        <button id="exportBtn" class="primary">Send everything so far</button>
+            <div class="actions">
+              <button id="useNoteBtn" class="secondary">Use typed answer</button>
+              <button id="prevBtn" class="secondary"><span class="key">A</span>Previous</button>
+              <button id="skipBtn" class="secondary"><span class="key">S</span>Park</button>
+              <button id="nextBtn" class="secondary"><span class="key">D</span>Next</button>
+              <button id="exportBtn" class="primary">Send everything so far</button>
+            </div>
+
+            <div id="evidenceWrap">
+              <div class="section-title">Selection evidence</div>
+              <ul class="evidence" id="evidence"></ul>
+            </div>
+          </div>
+        </aside>
       </div>
     </section>
 
@@ -476,6 +636,11 @@ INDEX_HTML = r"""<!doctype html>
       hostility: "Low/none = not hostile. Mild/mock = teasing, mockery, casual insult. Present = direct hostility or aggressive attack.",
       shock_attention: "Present = shock value or attention-bid energy is the point. Low/none = ordinary chat, even if rude or dumb."
     };
+    const USER_COLORS = [
+      "#ff4f5f", "#ff9f1c", "#ffd166", "#06d6a0", "#2ee86f", "#00d1ff",
+      "#3a86ff", "#7b61ff", "#b967ff", "#ff70a6", "#4dd599", "#f72585",
+      "#43aa8b", "#90be6d", "#f9844a", "#c77dff"
+    ];
 
     function applyTheme(theme) {
       document.documentElement.dataset.theme = theme;
@@ -531,20 +696,56 @@ INDEX_HTML = r"""<!doctype html>
       return item.guidance || AXIS_HELP[axis] || item.question || "";
     }
 
-    function subjectText(subject) {
-      if (subject == null) return "";
-      if (typeof subject === "string") return subject;
-      if (typeof subject === "object") {
-        return Object.entries(subject).map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`).join("\n");
+    function hashString(value) {
+      let h = 0;
+      const s = String(value || "").toLowerCase();
+      for (let i = 0; i < s.length; i++) {
+        h = ((h << 5) - h + s.charCodeAt(i)) | 0;
       }
-      return String(subject);
+      return Math.abs(h);
+    }
+
+    function colorForAuthor(author) {
+      if (!author) return "#aeb4bd";
+      return USER_COLORS[hashString(author) % USER_COLORS.length];
+    }
+
+    function normalizeLineText(value) {
+      return String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
+    }
+
+    function splitChatLine(line) {
+      const text = String(line || "");
+      const match = text.match(/^([A-Za-z0-9_]{1,32}):\s*(.*)$/);
+      if (!match) return { author: "", message: text };
+      return { author: match[1], message: match[2] };
+    }
+
+    function renderChatLine(author, message, marked = false) {
+      const cls = marked ? "chat-line marked" : "chat-line";
+      if (!author) {
+        return `<div class="${cls}"><span></span><span class="chat-message">${escapeHtml(message)}</span></div>`;
+      }
+      return `<div class="${cls}"><span class="chat-author" style="color:${colorForAuthor(author)}">${escapeHtml(author)}</span><span class="chat-message">${escapeHtml(message)}</span></div>`;
+    }
+
+    function renderChatContext(context, markedAuthor, markedMessage) {
+      const target = normalizeLineText(markedMessage);
+      const targetAuthor = String(markedAuthor || "").toLowerCase();
+      return String(context || "").split(/\r?\n/).map((line) => {
+        const parsed = splitChatLine(line);
+        const msg = normalizeLineText(parsed.message);
+        const sameAuthor = parsed.author.toLowerCase() === targetAuthor;
+        const marked = sameAuthor && target && (msg === target || msg.includes(target) || target.includes(msg));
+        return renderChatLine(parsed.author, parsed.message, marked);
+      }).join("");
     }
 
     function renderSubject(item) {
       const subject = item && item.subject;
       $("subjectMeta").innerHTML = "";
-      $("messageText").textContent = "";
-      $("contextText").textContent = "";
+      $("messageText").innerHTML = "";
+      $("contextText").innerHTML = "";
       $("contextWrap").classList.add("hidden");
       $("subjectDetails").classList.add("hidden");
       $("subjectDetails").innerHTML = "";
@@ -559,10 +760,10 @@ INDEX_HTML = r"""<!doctype html>
       }
       $("subjectMeta").innerHTML = chips.join("");
       const message = subject.message || subject.token || subject.summary || subject.title || "";
-      $("messageText").textContent = message;
+      $("messageText").innerHTML = renderChatLine(subject.author || "", message, true);
       if (subject.context) {
         $("contextWrap").classList.remove("hidden");
-        $("contextText").textContent = subject.context;
+        $("contextText").innerHTML = renderChatContext(subject.context, subject.author, message);
       }
       const hiddenKeys = new Set(["channel", "author", "axis", "message", "context", "title"]);
       const details = Object.entries(subject)
@@ -640,6 +841,15 @@ INDEX_HTML = r"""<!doctype html>
       $("itemSelect").value = String(state.index);
     }
 
+    function updateQueueSummary() {
+      const c = counts();
+      const queue = state.queue && state.queue !== ALL_QUEUES
+        ? state.queue.replace(".jsonl", "")
+        : "All queues";
+      const pos = state.items.length ? state.index + 1 : 0;
+      $("queueSummary").textContent = `${queue} · ${pos}/${state.items.length || 0} · ${c.pending} pending`;
+    }
+
     function setFilter(filter, start = 0) {
       state.filter = filter;
       const first = firstMatchingIndex(start, filter);
@@ -662,6 +872,7 @@ INDEX_HTML = r"""<!doctype html>
         const active = filter === state.filter ? " active" : "";
         return `<button class="pill status-filter${active}" data-filter="${filter}">${text}</button>`;
       }).join("");
+      updateQueueSummary();
       document.querySelectorAll("[data-filter]").forEach(btn => {
         btn.addEventListener("click", async () => {
           const targetFilter = btn.dataset.filter;
@@ -776,7 +987,10 @@ INDEX_HTML = r"""<!doctype html>
     }
 
     function scrollToReviewTop() {
-      $("card").scrollIntoView({ behavior: "smooth", block: "start" });
+      $("reviewLeft").scrollTo({ top: 0, behavior: "smooth" });
+      $("reviewRight").scrollTo({ top: 0, behavior: "smooth" });
+      $("rightScroll").scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     async function loadQueues() {
