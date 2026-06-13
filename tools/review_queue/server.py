@@ -924,13 +924,13 @@ INDEX_HTML = r"""<!doctype html>
         if (subject[key]) chips.push(`<span class="meta-chip"><span>${escapeHtml(key)}</span>${escapeHtml(subject[key])}</span>`);
       }
       $("subjectMeta").innerHTML = chips.join("");
-      const message = subject.message || subject.token || subject.summary || subject.title || "";
+      const message = subject.message || subject.text || subject.summary || subject.title || "";
       $("messageText").innerHTML = renderChatLine(subject.author || "", message, true);
       if (subject.context) {
         $("contextWrap").classList.remove("hidden");
         $("contextText").innerHTML = renderChatContext(subject.context, subject.author, message);
       }
-      const hiddenKeys = new Set(["channel", "author", "axis", "message", "context", "title"]);
+      const hiddenKeys = new Set(["channel", "author", "axis", "message", "text", "context", "title"]);
       const details = Object.entries(subject)
         .filter(([key]) => !hiddenKeys.has(key))
         .map(([key, value]) => `<div><strong>${escapeHtml(key)}:</strong> ${escapeHtml(typeof value === "object" ? JSON.stringify(value) : value)}</div>`);

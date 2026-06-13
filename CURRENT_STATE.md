@@ -1,6 +1,6 @@
 # Current State
 
-Date: 2026-06-12
+Date: 2026-06-13
 
 This repo is a public-facing prompt engineering library. Its job is to capture
 the recurring AI failure modes, tone preferences, privacy rules, review
@@ -29,12 +29,21 @@ instruction library:
 - A local review queue tool for answering many small classification questions
   quickly.
 
-The newest docs added in this pass are:
+Recent docs added or reorganized:
 
-- `11-privacy-instructions.md`
-- `12-human-in-loop-label-review.md`
-- `13-review-question-writing.md`
-- `audit/audit-method.md`
+- `docs/instructions/11-privacy-instructions.md`
+- `docs/instructions/12-human-in-loop-label-review.md`
+- `docs/instructions/13-review-question-writing.md`
+- `docs/audit/audit-method.md`
+- `docs/maintenance/freshness-check.md`
+
+The public documentation now lives under:
+
+```text
+docs/
+```
+
+Root files are limited to the README, license, and the current-state handoff.
 
 ## Review Queue Tool
 
@@ -62,6 +71,12 @@ The tool reads private ignored JSONL queues from:
 private_docs/review_queues/
 ```
 
+It also has a public-safe demo queue:
+
+```text
+tools/review_queue/samples/demo_queue.jsonl
+```
+
 The current interaction model:
 
 - `1` through `9`: choose visible answer options.
@@ -76,22 +91,32 @@ The current interaction model:
 - The question dropdown jumps directly to a card in the current filter.
 - `Send everything so far` writes a Markdown export into ignored dropoff files.
 
-Current private queue status at handoff:
+Current ignored private queue status at this freshness pass:
 
-- Total review items: 22
-- Answered: 22
-- Pending: 0
-- Parked: 0
+- Total review items: 127
+- Answered: 89
+- Pending: 35
+- Parked: 3
 
-The latest private export is intentionally ignored by git:
+Private exports are intentionally ignored by git:
 
 ```text
-dropoff/review_exports/latest_all_review_queues.md
+dropoff/review_exports/
 ```
 
-That export contains source-specific answers and should be consumed only by the
-matching source repos or chats. Do not publish it as part of this prompt
-engineering repo.
+Those exports contain source-specific answers and should be consumed only by the
+matching source repos or chats. Do not publish them as part of this prompt
+engineering repo. If the active queue changes, click `Send everything so far` in
+the tool before expecting the latest export to reflect the current private
+queue.
+
+The next review-tool agenda is v2 result flow:
+
+- accept producer queues from ignored queue folders
+- save an incremental result after every answer
+- avoid any required final export/copy step
+- support hundreds of items without losing progress
+- keep source-specific queue names and payloads private
 
 ## Public/Private State
 
@@ -130,12 +155,14 @@ Before publishing or pushing, run a privacy scan for:
 Start by reading:
 
 1. `README.md`
-2. `AI-PROMPT-INSTRUCTIONS-AND-PREFERENCES/README.md`
+2. `docs/README.md`
 3. `CURRENT_STATE.md`
-4. `AI-PROMPT-INSTRUCTIONS-AND-PREFERENCES/12-human-in-loop-label-review.md`
-5. `AI-PROMPT-INSTRUCTIONS-AND-PREFERENCES/13-review-question-writing.md`
+4. `docs/instructions/12-human-in-loop-label-review.md`
+5. `docs/instructions/13-review-question-writing.md`
+6. `docs/maintenance/freshness-check.md`
 
-If resuming private source work, read the ignored export:
+If resuming private source work, open the review tool and read the ignored
+export when it has been refreshed:
 
 ```text
 dropoff/review_exports/latest_all_review_queues.md
@@ -148,15 +175,21 @@ copy unrelated repo details across project boundaries.
 
 Highest-value next steps:
 
-1. Add reusable repo-family prompt packs under `AI-PROMPT-INSTRUCTIONS-AND-PREFERENCES/packs/`.
+1. Add reusable repo-family prompt packs under `docs/packs/`.
 2. Build a lint checklist or script for AI-tone and privacy failure phrases.
 3. Convert this folder into a local Codex skill once the rules stabilize.
-4. Improve the review queue import/export loop so producer repos can consume
-   answered queues more directly.
-5. Add a small public-safe sample queue so the review tool can be demonstrated
-   without exposing private material.
-6. Decide whether this repo needs a GitHub Pages site or whether the README is
+4. Improve the review queue result loop so producer repos can consume answered
+   queues incrementally.
+5. Decide whether this repo needs a GitHub Pages site or whether the README is
    enough for now.
+6. Keep the weekly freshness automation active or update it when the repo's
+   maintenance checklist changes.
+
+Active automation:
+
+- `ai-prompt-engineering-weekly-freshness-audit`
+- runs a recurring docs freshness, privacy, review-tool, commit, and push check
+- uses `docs/maintenance/freshness-check.md` as the durable checklist
 
 ## Git And Publish Notes
 

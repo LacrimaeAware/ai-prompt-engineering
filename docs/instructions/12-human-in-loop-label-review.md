@@ -28,6 +28,17 @@ Start simple:
 
 The clever part is the queue and answer model, not the UI.
 
+The preferred v2 shape is folder-based:
+
+```text
+dropoff/<queue-name>/queue.jsonl
+dropoff/<queue-name>/results/
+```
+
+The tool reads unanswered items from `queue.jsonl` and writes a result artifact
+after every answer. There should not be a required "done" step before producer
+repos can consume progress.
+
 ## Required behavior
 
 Every question must offer:
@@ -103,6 +114,31 @@ Producer projects should:
 4. Re-read the answered JSONL after review.
 5. Treat free-answer notes, `Skip`, and `Ask later` as real outcomes.
 6. Preserve stable IDs across wording changes.
+7. Prefer incremental result folders when queues may contain many items.
+
+## Result flow
+
+For small local queues, updating the JSONL file in place is acceptable.
+
+For larger queues, prefer append-only or per-item result files:
+
+```text
+dropoff/<queue-name>/results/<item-id>.json
+```
+
+Each result should include:
+
+- queue name
+- item id
+- answer
+- answer note
+- answer status
+- answered timestamp
+- reviewer mode
+
+This makes the review loop resilient. Browser refreshes, crashes, or stopping
+mid-session should not lose completed labels or require a manual export before
+another repo can continue.
 
 ## Reviewer UX
 
@@ -195,3 +231,10 @@ Build the smallest useful version:
 6. Repeat until the user exits.
 
 Avoid building a large app before the schema and review loop feel right.
+
+After the loop feels right, improve the result flow before adding fancy UI:
+
+1. Read queue folders from ignored dropoff paths.
+2. Save one result file after every answer.
+3. Resume by merging queue items with existing results.
+4. Keep manual Markdown export as a convenience, not the only handoff path.

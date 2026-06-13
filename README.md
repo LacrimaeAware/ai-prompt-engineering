@@ -7,9 +7,18 @@ methodologically disciplined.
 Start here:
 
 - [CURRENT_STATE.md](CURRENT_STATE.md)
-- [AI-PROMPT-INSTRUCTIONS-AND-PREFERENCES/README.md](AI-PROMPT-INSTRUCTIONS-AND-PREFERENCES/README.md)
-- [AI-PROMPT-INSTRUCTIONS-AND-PREFERENCES/00-core-directives.md](AI-PROMPT-INSTRUCTIONS-AND-PREFERENCES/00-core-directives.md)
-- [AI-PROMPT-INSTRUCTIONS-AND-PREFERENCES/examples/bad-good-examples.md](AI-PROMPT-INSTRUCTIONS-AND-PREFERENCES/examples/bad-good-examples.md)
+- [docs/README.md](docs/README.md)
+- [docs/instructions/00-core-directives.md](docs/instructions/00-core-directives.md)
+- [docs/examples/bad-good-examples.md](docs/examples/bad-good-examples.md)
+- [docs/ROADMAP.md](docs/ROADMAP.md)
+
+Project layout:
+
+- `docs/`: public instruction library, roadmap, examples, audits, and
+  maintenance notes.
+- `tools/`: local tools that support the instruction library.
+- `dropoff/`: ignored intake/output area for raw handoffs and review exports.
+- `private_docs/`: ignored source-specific notes and review queues.
 
 Local tools:
 

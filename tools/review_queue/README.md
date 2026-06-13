@@ -2,6 +2,10 @@
 
 Local human-in-the-loop review app for JSONL question queues.
 
+Current version: local prototype.
+
+Planned v2: folder-based queues with incremental per-answer result files.
+
 Run:
 
 ```powershell
@@ -18,6 +22,18 @@ The app reads ignored local queues from:
 
 ```text
 private_docs/review_queues/
+```
+
+To try the public-safe demo queue instead:
+
+```powershell
+python tools/review_queue/server.py --queue-dir tools/review_queue/samples --port 8992
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8992
 ```
 
 Controls:
@@ -44,3 +60,15 @@ dropoff/review_exports/
 
 The export is also shown on the page and copied to the clipboard when the
 browser allows it.
+
+## V2 Backlog
+
+The next result-flow upgrade should:
+
+- read queue folders such as `dropoff/<queue-name>/queue.jsonl`
+- write one result file after every answer into
+  `dropoff/<queue-name>/results/`
+- resume by merging queue items with any existing result files
+- keep Markdown export as a convenience, not a required final step
+- support larger batches without making the user manually copy results between
+  projects

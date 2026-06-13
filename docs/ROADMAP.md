@@ -1,7 +1,8 @@
 # Roadmap
 
-This folder is the first pass. It should become more useful by accumulating
-examples, task-specific packs, and rewrite tests.
+This repo is now organized around `docs/`, `tools/`, `dropoff/`, and
+`private_docs/`. It should become more useful by accumulating examples,
+task-specific packs, rewrite tests, and maintenance automation.
 
 ## Phase 1: Seed library
 
@@ -34,7 +35,7 @@ Expand the example bank with:
 - noisy journal transcript -> structured private note
 - bad code comments -> maintainer comments
 
-Keep raw private examples in `private/examples/`, which should stay ignored.
+Keep raw private examples in `private_docs/examples/`, which should stay ignored.
 Public-safe examples can go in `examples/`.
 
 ## Phase 3: Repo-specific packs
@@ -97,7 +98,7 @@ or mismatch between research-report and devlog voice.
 Status: prototype working.
 
 Build a small human-in-the-loop review tool from
-`12-human-in-loop-label-review.md`.
+`docs/instructions/12-human-in-loop-label-review.md`.
 
 Implemented:
 
@@ -112,13 +113,35 @@ Implemented:
 
 Still useful later:
 
-- add a public-safe sample queue
-- add import helpers for producer repos
 - add better tests around navigation and export behavior
+
+Public-safe demo queue:
+
+- `tools/review_queue/samples/demo_queue.jsonl`
+
+## Phase 6b: Review queue v2 result flow
+
+Status: next system upgrade.
+
+The prototype proved the keyboard/card workflow, but future producer repos
+should not depend on a manual final export step.
+
+Target behavior:
+
+- accept queue folders from ignored intake locations
+- read one JSONL queue file per review batch
+- write one result artifact after every answer
+- resume cleanly after crashes or browser refreshes
+- support hundreds of items with keyboard-first review
+- make `skip`, `park`, and `can't tell` first-class labels
+- let producer repos poll result folders and consume completed answers
+
+Keep source-specific queue names, raw examples, and evidence payloads out of
+public docs.
 
 ## Phase 7: Return-state and release hygiene
 
-Status: started with `CURRENT_STATE.md`.
+Status: active.
 
 Keep the repo easy to resume after breaks:
 
@@ -127,3 +150,17 @@ Keep the repo easy to resume after breaks:
 - update the README when new tool surfaces or core docs are added
 - rerun privacy scans before committing public docs
 - note whether a remote is configured before promising that changes were pushed
+- run `docs/maintenance/freshness-check.md` before larger pushes
+
+## Phase 8: Maintenance automation
+
+Status: started.
+
+The automation should periodically:
+
+- pull latest public main when safe
+- run the freshness checklist
+- verify the review queue server compiles
+- scan public docs for privacy and stale-path issues
+- update state/roadmap docs if the repo drifted
+- commit and push only public-safe changes
