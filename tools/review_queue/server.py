@@ -557,6 +557,7 @@ INDEX_HTML = r"""<!doctype html>
     }
 
     .choice-help-pop {
+      display: none;
       grid-column: 1 / -1;
       border: 1px solid color-mix(in srgb, var(--axis) 22%, var(--line));
       border-radius: 7px;
@@ -564,6 +565,12 @@ INDEX_HTML = r"""<!doctype html>
       color: var(--text);
       padding: 9px 10px;
       font-size: 13px;
+    }
+
+    .choice-help-btn:hover + .choice-help-pop,
+    .choice-help-btn:focus + .choice-help-pop,
+    .choice-help-pop.pinned {
+      display: block;
     }
 
     pre {
@@ -1013,8 +1020,8 @@ INDEX_HTML = r"""<!doctype html>
         const shortcut = CHOICE_KEYS[idx] || String(idx + 1);
         const key = shortcut ? `<span class="key">${escapeHtml(shortcut.toUpperCase())}</span>` : "";
         const help = optionHelp(item, option);
-        const hint = help ? `<button type="button" class="choice-help-btn" data-help-index="${idx}" aria-label="Explain ${escapeHtml(optionLabel(item, option))}">?</button>` : "";
-        const pop = help ? `<div class="choice-help-pop hidden" id="choiceHelp-${idx}">${escapeHtml(help)}</div>` : "";
+        const hint = help ? `<button type="button" class="choice-help-btn" data-help-index="${idx}" title="${escapeHtml(help)}" aria-label="Explain ${escapeHtml(optionLabel(item, option))}">?</button>` : "";
+        const pop = help ? `<div class="choice-help-pop" id="choiceHelp-${idx}">${escapeHtml(help)}</div>` : "";
         return `<div class="choice-row"><button class="choice-answer" data-option-index="${idx}">${key}${escapeHtml(optionLabel(item, option))}</button>${hint}${pop}</div>`;
       }).join("");
       document.querySelectorAll("[data-option-index]").forEach(btn => {
@@ -1025,7 +1032,7 @@ INDEX_HTML = r"""<!doctype html>
           event.preventDefault();
           event.stopPropagation();
           const pop = $(`choiceHelp-${btn.dataset.helpIndex}`);
-          if (pop) pop.classList.toggle("hidden");
+          if (pop) pop.classList.toggle("pinned");
         });
       });
 
