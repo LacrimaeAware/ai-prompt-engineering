@@ -351,6 +351,7 @@ INDEX_HTML = r"""<!doctype html>
       align-items: center;
       gap: 8px;
       margin: 6px 0 10px;
+      position: relative;
     }
 
     .section-title {
@@ -556,6 +557,12 @@ INDEX_HTML = r"""<!doctype html>
       background: var(--control-alt);
     }
 
+    .question-help-btn {
+      min-height: 30px;
+      color: var(--muted);
+      background: var(--control);
+    }
+
     .choice-help-pop {
       display: none;
       grid-column: 1 / -1;
@@ -565,6 +572,16 @@ INDEX_HTML = r"""<!doctype html>
       color: var(--text);
       padding: 9px 10px;
       font-size: 13px;
+      white-space: pre-line;
+    }
+
+    .question-help-pop {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      max-width: min(720px, calc(100vw - 64px));
+      z-index: 7;
+      box-shadow: var(--shadow);
     }
 
     .choice-help-btn:hover + .choice-help-pop,
@@ -586,6 +603,18 @@ INDEX_HTML = r"""<!doctype html>
     .hidden { display: none; }
     .muted { color: var(--muted); }
     .small { font-size: 13px; }
+
+    .icon-btn {
+      width: 38px;
+      min-width: 38px;
+      height: 38px;
+      min-height: 38px;
+      border-radius: 999px;
+      padding: 0;
+      text-align: center;
+      font-size: 18px;
+      line-height: 1;
+    }
 
     @media (max-width: 900px) {
       body { overflow: auto; height: auto; }
@@ -609,10 +638,10 @@ INDEX_HTML = r"""<!doctype html>
         <select id="queueSelect" aria-label="Queue"></select>
         <select id="itemSelect" aria-label="Question"></select>
         <button id="reloadBtn" class="secondary">Reload</button>
-        <button id="themeBtn" class="secondary">Dark</button>
       </div>
     </details>
     <div class="bar small muted">
+      <button id="themeBtn" class="secondary icon-btn" aria-label="Switch theme"></button>
       <span>Keys: Q W E R... choices</span>
       <span>A previous</span>
       <span>S park</span>
@@ -627,9 +656,9 @@ INDEX_HTML = r"""<!doctype html>
           <div class="muted small" id="itemMeta"></div>
           <div class="question-row">
             <div class="question" id="question">Loading...</div>
-            <button id="helpBtn" class="secondary help-btn" title="Show guidance">?</button>
+            <button id="helpBtn" class="secondary help-btn choice-help-btn question-help-btn" aria-describedby="guidance" aria-label="Show axis guidance">?</button>
+            <div class="choice-help-pop question-help-pop" id="guidance"></div>
           </div>
-          <div class="guidance-box hidden" id="guidance"></div>
           <div class="subject-grid">
             <div class="subject-meta" id="subjectMeta"></div>
             <div class="message-box marked-chat">
@@ -692,8 +721,7 @@ INDEX_HTML = r"""<!doctype html>
       items: [],
       index: 0,
       filter: "all",
-      draftTimer: null,
-      guidanceOpen: false
+      draftTimer: null
     };
 
     const $ = (id) => document.getElementById(id);
@@ -709,9 +737,9 @@ INDEX_HTML = r"""<!doctype html>
       shock_attention: "Shock / attention"
     };
     const AXIS_HELP = {
-      validity: "Should this row be eligible for semantic/intent training? Mark bot output, mod notices, pure links, pure ASCII/image text, command responses, and totally opaque fragments as not_valid. Short human messages can still be valid.",
-      literal_alignment: "Aligned = conventional chat meaning points the same way as the intended stance, including normal emote/action/greeting use. Divergent = irony/reversal/gap. Unclear = no stable meaning or you cannot tell.",
-      magnitude_distortion: "Literal/normal = ordinary strength. Overstated = hyperbole or exaggerated magnitude. Understated = deliberately downplayed. This axis is separate from irony.",
+      validity: "Is a person trying to communicate something interpretable to another person or the chat? Valid includes normal text, emotes, action shorthand, ASCII/image posts, and bot-directed messages when they still reveal the person's intent. Not valid means bot/mod output, boilerplate command output, pure noise, or no decipherable semantic/social content.",
+      literal_alignment: "Does the intended direction match the message's conventional meaning, with no hidden reversal? Judge the main proposition/stance, not every imprecise detail. Figurative or auxiliary wording can still be aligned when the overall claim points the same way. Hyperbole is usually aligned; magnitude distortion is a different axis.",
+      magnitude_distortion: "Magnitude is a distortion scale. Understated is negative distortion, zero means normal strength or no meaningful magnitude to judge, and overstated is positive distortion/hyperbole. This axis is separate from literal alignment.",
       play_frame: "Serious/plain = straightforward or no bit-frame. Bit/unserious = performed as a joke, riff, or unserious chat move. Bit-as-cover = the bit form covers aggression, status, criticism, or a risky stance.",
       masking_facework: "Absent = no obvious cover. Possible/present = humor or irony seems to launder criticism, aggression, status, or a socially risky stance.",
       hostility: "Low/none = not hostile. Mild/mock = teasing, mockery, casual insult. Present = direct hostility or aggressive attack.",
@@ -735,7 +763,9 @@ INDEX_HTML = r"""<!doctype html>
     function applyTheme(theme) {
       document.documentElement.dataset.theme = theme;
       localStorage.setItem(THEME_STORAGE_KEY, theme);
-      $("themeBtn").textContent = theme === "dark" ? "Light mode" : "Dark mode";
+      $("themeBtn").textContent = theme === "dark" ? "☀" : "☾";
+      $("themeBtn").title = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+      $("themeBtn").setAttribute("aria-label", $("themeBtn").title);
       applyAxisColor(state.items[state.index]);
     }
 
@@ -849,6 +879,17 @@ INDEX_HTML = r"""<!doctype html>
     function optionHelp(item, option) {
       const help = item && item.option_help;
       return help && help[option] ? help[option] : "";
+    }
+
+    function optionShortcut(item, idx) {
+      const keys = item && Array.isArray(item.option_keys) ? item.option_keys : null;
+      return (keys && keys[idx]) || CHOICE_KEYS[idx] || String(idx + 1);
+    }
+
+    function optionIndexForShortcut(item, key) {
+      const options = (item && item.options) || [];
+      const keys = options.map((_option, idx) => String(optionShortcut(item, idx)).toLowerCase());
+      return keys.indexOf(String(key || "").toLowerCase());
     }
 
     function hideChoiceHelp() {
@@ -1012,6 +1053,7 @@ INDEX_HTML = r"""<!doctype html>
         $("question").textContent = `No ${state.filter} items in this queue.`;
         renderSubject(null);
         $("guidance").classList.add("hidden");
+        hideChoiceHelp();
         $("choices").innerHTML = "";
         $("evidence").innerHTML = "";
         syncItemSelect();
@@ -1026,7 +1068,7 @@ INDEX_HTML = r"""<!doctype html>
       const help = guidanceText(item);
       $("helpBtn").classList.toggle("hidden", !help);
       $("guidance").textContent = help;
-      $("guidance").classList.toggle("hidden", !state.guidanceOpen || !help);
+      $("guidance").classList.toggle("hidden", !help);
       renderSubject(item);
 
       const ev = evidenceList(item.context || item.evidence);
@@ -1035,7 +1077,7 @@ INDEX_HTML = r"""<!doctype html>
 
       const options = item.options || [];
       $("choices").innerHTML = options.map((option, idx) => {
-        const shortcut = CHOICE_KEYS[idx] || String(idx + 1);
+        const shortcut = optionShortcut(item, idx);
         const key = shortcut ? `<span class="key">${escapeHtml(shortcut.toUpperCase())}</span>` : "";
         const help = optionHelp(item, option);
         const hint = help ? `<button type="button" class="choice-help-btn" aria-describedby="choiceHelp-${idx}" aria-label="Explain ${escapeHtml(optionLabel(item, option))}">?</button>` : "";
@@ -1301,9 +1343,16 @@ INDEX_HTML = r"""<!doctype html>
       await navigator.clipboard.writeText(text);
       $("exportStatus").textContent = "Export copied to clipboard.";
     });
-    $("helpBtn").addEventListener("click", () => {
-      state.guidanceOpen = !state.guidanceOpen;
-      render();
+    $("helpBtn").addEventListener("mouseenter", () => showChoiceHelp($("helpBtn")));
+    $("helpBtn").addEventListener("mouseleave", () => {
+      if (document.activeElement !== $("helpBtn")) hideChoiceHelp();
+    });
+    $("helpBtn").addEventListener("focus", () => showChoiceHelp($("helpBtn")));
+    $("helpBtn").addEventListener("blur", hideChoiceHelp);
+    $("helpBtn").addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      showChoiceHelp($("helpBtn"));
     });
     document.addEventListener("click", (event) => {
       if (!event.target.closest(".choice-help-btn")) hideChoiceHelp();
@@ -1313,7 +1362,7 @@ INDEX_HTML = r"""<!doctype html>
       const tag = event.target.tagName.toLowerCase();
       if (tag === "textarea" || tag === "input" || tag === "select") return;
       const key = event.key.toLowerCase();
-      const choiceIdx = CHOICE_KEYS.indexOf(key);
+      const choiceIdx = optionIndexForShortcut(state.items[state.index], key);
       if (choiceIdx >= 0) {
         answerChoice(choiceIdx);
       } else if (/^[1-9]$/.test(key)) {
