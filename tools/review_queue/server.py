@@ -173,6 +173,73 @@ INDEX_HTML = r"""<!doctype html>
       white-space: pre-wrap;
     }
 
+    .subject-grid {
+      display: grid;
+      gap: 10px;
+      margin: 10px 0 14px;
+    }
+
+    .subject-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: var(--pill-bg);
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .meta-chip span {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .message-box,
+    .context-box,
+    .details-box,
+    .guidance-box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--control-alt);
+    }
+
+    .message-text {
+      font-size: 20px;
+      line-height: 1.28;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .context-box {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      max-height: 360px;
+      overflow: auto;
+    }
+
+    .details-box {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .question-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0 10px;
+    }
+
     .section-title {
       font-size: 12px;
       text-transform: uppercase;
@@ -213,6 +280,17 @@ INDEX_HTML = r"""<!doctype html>
       cursor: pointer;
       text-align: left;
       min-height: 42px;
+    }
+
+    .help-btn {
+      border-radius: 50%;
+      width: 30px;
+      min-width: 30px;
+      height: 30px;
+      min-height: 30px;
+      padding: 0;
+      text-align: center;
+      font-weight: 800;
     }
 
     button:hover {
@@ -305,7 +383,7 @@ INDEX_HTML = r"""<!doctype html>
       <button id="themeBtn" class="secondary">Dark</button>
     </div>
     <div class="bar small muted">
-      <span>Keys: 1-9 choices</span>
+      <span>Keys: Q W E R... choices</span>
       <span>A previous</span>
       <span>S park</span>
       <span>D next</span>
@@ -317,8 +395,23 @@ INDEX_HTML = r"""<!doctype html>
       <div class="status-row" id="status"></div>
       <div class="muted small" id="itemMeta"></div>
       <div class="muted small" id="saveStatus"></div>
-      <div class="question" id="question">Loading...</div>
-      <div class="subject" id="subject"></div>
+      <div class="question-row">
+        <div class="question" id="question">Loading...</div>
+        <button id="helpBtn" class="secondary help-btn" title="Show guidance">?</button>
+      </div>
+      <div class="guidance-box hidden" id="guidance"></div>
+      <div class="subject-grid">
+        <div class="subject-meta" id="subjectMeta"></div>
+        <div class="message-box">
+          <div class="section-title">Marked message</div>
+          <div class="message-text" id="messageText"></div>
+        </div>
+        <div id="contextWrap">
+          <div class="section-title">Chat context</div>
+          <div class="context-box" id="contextText"></div>
+        </div>
+        <div class="details-box hidden" id="subjectDetails"></div>
+      </div>
 
       <div id="evidenceWrap">
         <div class="section-title">Context from source</div>
@@ -359,10 +452,30 @@ INDEX_HTML = r"""<!doctype html>
       items: [],
       index: 0,
       filter: "all",
-      draftTimer: null
+      draftTimer: null,
+      guidanceOpen: false
     };
 
     const $ = (id) => document.getElementById(id);
+    const CHOICE_KEYS = ["q", "w", "e", "r", "t", "y", "u", "i", "o"];
+    const AXIS_TITLES = {
+      validity: "Validity",
+      literal_alignment: "Literal alignment",
+      magnitude_distortion: "Magnitude distortion",
+      play_frame: "Play frame",
+      masking_facework: "Masking / facework",
+      hostility: "Hostility",
+      shock_attention: "Shock / attention"
+    };
+    const AXIS_HELP = {
+      validity: "Should this row be eligible for semantic/intent training? Mark bot output, mod notices, pure links, pure ASCII/image text, command responses, and totally opaque fragments as not_valid. Short human messages can still be valid.",
+      literal_alignment: "Aligned = the intended stance points the same way as the literal words. Divergent = irony/reversal/gap. Not applicable = no real proposition, such as pure emotes or greetings. Unclear = there is a proposition, but intent is unknowable.",
+      magnitude_distortion: "Literal/normal = ordinary strength. Overstated = hyperbole or exaggerated magnitude. Understated = deliberately downplayed. This axis is separate from irony.",
+      play_frame: "Low/none = mostly plain serious talk. Playful = framed as a bit/joke. Masking-play = joke form appears to cover criticism, aggression, or status work.",
+      masking_facework: "Absent = no obvious cover. Possible/present = humor or irony seems to launder criticism, aggression, status, or a socially risky stance.",
+      hostility: "Low/none = not hostile. Mild/mock = teasing, mockery, casual insult. Present = direct hostility or aggressive attack.",
+      shock_attention: "Present = shock value or attention-bid energy is the point. Low/none = ordinary chat, even if rude or dumb."
+    };
 
     function applyTheme(theme) {
       document.documentElement.dataset.theme = theme;
@@ -407,6 +520,17 @@ INDEX_HTML = r"""<!doctype html>
       return subject || item.question || item.id || "(no id)";
     }
 
+    function displayQuestion(item) {
+      const axis = item && item.subject && item.subject.axis;
+      return AXIS_TITLES[axis] || item.question || "(no question)";
+    }
+
+    function guidanceText(item) {
+      if (!item) return "";
+      const axis = item.subject && item.subject.axis;
+      return item.guidance || AXIS_HELP[axis] || item.question || "";
+    }
+
     function subjectText(subject) {
       if (subject == null) return "";
       if (typeof subject === "string") return subject;
@@ -414,6 +538,40 @@ INDEX_HTML = r"""<!doctype html>
         return Object.entries(subject).map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`).join("\n");
       }
       return String(subject);
+    }
+
+    function renderSubject(item) {
+      const subject = item && item.subject;
+      $("subjectMeta").innerHTML = "";
+      $("messageText").textContent = "";
+      $("contextText").textContent = "";
+      $("contextWrap").classList.add("hidden");
+      $("subjectDetails").classList.add("hidden");
+      $("subjectDetails").innerHTML = "";
+      if (subject == null) return;
+      if (typeof subject !== "object") {
+        $("messageText").textContent = String(subject);
+        return;
+      }
+      const chips = [];
+      for (const key of ["channel", "author", "axis"]) {
+        if (subject[key]) chips.push(`<span class="meta-chip"><span>${escapeHtml(key)}</span>${escapeHtml(subject[key])}</span>`);
+      }
+      $("subjectMeta").innerHTML = chips.join("");
+      const message = subject.message || subject.token || subject.summary || subject.title || "";
+      $("messageText").textContent = message;
+      if (subject.context) {
+        $("contextWrap").classList.remove("hidden");
+        $("contextText").textContent = subject.context;
+      }
+      const hiddenKeys = new Set(["channel", "author", "axis", "message", "context", "title"]);
+      const details = Object.entries(subject)
+        .filter(([key]) => !hiddenKeys.has(key))
+        .map(([key, value]) => `<div><strong>${escapeHtml(key)}:</strong> ${escapeHtml(typeof value === "object" ? JSON.stringify(value) : value)}</div>`);
+      if (details.length) {
+        $("subjectDetails").classList.remove("hidden");
+        $("subjectDetails").innerHTML = details.join("");
+      }
     }
 
     function evidenceList(evidence) {
@@ -517,7 +675,8 @@ INDEX_HTML = r"""<!doctype html>
         $("itemMeta").textContent = "";
         setSaveStatus("");
         $("question").textContent = `No ${state.filter} items in this queue.`;
-        $("subject").textContent = "";
+        renderSubject(null);
+        $("guidance").classList.add("hidden");
         $("choices").innerHTML = "";
         $("evidence").innerHTML = "";
         syncItemSelect();
@@ -527,8 +686,12 @@ INDEX_HTML = r"""<!doctype html>
       const source = item._queue ? ` | ${item._queue}` : "";
       $("itemMeta").textContent = `${state.index + 1} / ${state.items.length}${source} | ${item.id || "(no id)"} | ${item.answer_status || "pending"}`;
       setSaveStatus(item.draft_saved_at ? `Draft saved ${item.draft_saved_at}` : "");
-      $("question").textContent = item.question || "(no question)";
-      $("subject").textContent = subjectText(item.subject);
+      $("question").textContent = displayQuestion(item);
+      const help = guidanceText(item);
+      $("helpBtn").classList.toggle("hidden", !help);
+      $("guidance").textContent = help;
+      $("guidance").classList.toggle("hidden", !state.guidanceOpen || !help);
+      renderSubject(item);
 
       const ev = evidenceList(item.context || item.evidence);
       $("evidenceWrap").classList.toggle("hidden", ev.length === 0);
@@ -536,7 +699,8 @@ INDEX_HTML = r"""<!doctype html>
 
       const options = item.options || [];
       $("choices").innerHTML = options.map((option, idx) => {
-        const key = idx < 9 ? `<span class="key">${idx + 1}</span>` : "";
+        const shortcut = CHOICE_KEYS[idx] || String(idx + 1);
+        const key = shortcut ? `<span class="key">${escapeHtml(shortcut.toUpperCase())}</span>` : "";
         return `<button data-option-index="${idx}">${key}${escapeHtml(option)}</button>`;
       }).join("");
       document.querySelectorAll("[data-option-index]").forEach(btn => {
@@ -601,6 +765,20 @@ INDEX_HTML = r"""<!doctype html>
       await saveDraft(itemQueue(item), item.id, note.trim());
     }
 
+    async function saveDraftForLeave() {
+      const item = state.items[state.index];
+      if (!item) return;
+      const note = $("note").value.trim();
+      item.answer_note = note || null;
+      if (item.answer_status === "answered" || note) {
+        await saveDraft(itemQueue(item), item.id, note);
+      }
+    }
+
+    function scrollToReviewTop() {
+      $("card").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
     async function loadQueues() {
       const res = await fetch("/api/queues");
       state.queues = await res.json();
@@ -650,6 +828,7 @@ INDEX_HTML = r"""<!doctype html>
       if (shouldAdvance) {
         moveFromIndex(oldIndex, 1);
         render();
+        scrollToReviewTop();
       }
       await loadQueuesPreserve();
     }
@@ -687,13 +866,7 @@ INDEX_HTML = r"""<!doctype html>
         }, { advance: false });
         return;
       }
-      if (item.answer_status === "answered") {
-        await flushDraftSave();
-      } else if (note) {
-        await saveAnswer({ answer: note, answer_status: "answered", answer_note: note }, { advance: false });
-      } else {
-        await saveAnswer({ answer: item.answer || null, answer_status: "ask_later" }, { advance: false });
-      }
+      await saveDraftForLeave();
     }
 
     async function leaveAndMove(delta, options = {}) {
@@ -701,6 +874,7 @@ INDEX_HTML = r"""<!doctype html>
       await commitCurrentForLeave(options);
       moveFromIndex(oldIndex, delta);
       render();
+      scrollToReviewTop();
     }
 
     async function exportSummary() {
@@ -732,10 +906,12 @@ INDEX_HTML = r"""<!doctype html>
       const selectedQueue = event.target.value;
       await commitCurrentForLeave();
       await loadQueue(selectedQueue);
+      scrollToReviewTop();
     });
     $("reloadBtn").addEventListener("click", async () => {
       await commitCurrentForLeave();
       await loadQueue(state.queue);
+      scrollToReviewTop();
     });
     $("itemSelect").addEventListener("change", async (event) => {
       const selectedIndex = Number(event.target.value);
@@ -743,6 +919,7 @@ INDEX_HTML = r"""<!doctype html>
       await commitCurrentForLeave();
       state.index = selectedIndex;
       render();
+      scrollToReviewTop();
     });
     $("note").addEventListener("input", scheduleDraftSave);
     $("useNoteBtn").addEventListener("click", () => {
@@ -769,12 +946,19 @@ INDEX_HTML = r"""<!doctype html>
       await navigator.clipboard.writeText(text);
       $("exportStatus").textContent = "Export copied to clipboard.";
     });
+    $("helpBtn").addEventListener("click", () => {
+      state.guidanceOpen = !state.guidanceOpen;
+      render();
+    });
 
     document.addEventListener("keydown", (event) => {
       const tag = event.target.tagName.toLowerCase();
       if (tag === "textarea" || tag === "input" || tag === "select") return;
       const key = event.key.toLowerCase();
-      if (/^[1-9]$/.test(key)) {
+      const choiceIdx = CHOICE_KEYS.indexOf(key);
+      if (choiceIdx >= 0) {
+        answerChoice(choiceIdx);
+      } else if (/^[1-9]$/.test(key)) {
         answerChoice(Number(key) - 1);
       } else if (key === "s") {
         $("skipBtn").click();
