@@ -569,7 +569,7 @@ INDEX_HTML = r"""<!doctype html>
 
     .choice-help-btn:hover + .choice-help-pop,
     .choice-help-btn:focus + .choice-help-pop,
-    .choice-help-pop.pinned {
+    .choice-help-pop.visible {
       display: block;
     }
 
@@ -697,6 +697,7 @@ INDEX_HTML = r"""<!doctype html>
     };
 
     const $ = (id) => document.getElementById(id);
+    const THEME_STORAGE_KEY = "reviewQueueTheme.v2";
     const CHOICE_KEYS = ["q", "w", "e", "r", "t", "y", "u", "i", "o"];
     const AXIS_TITLES = {
       validity: "Validity",
@@ -717,13 +718,13 @@ INDEX_HTML = r"""<!doctype html>
       shock_attention: "Present = shock value or attention-bid energy is the point. Low/none = ordinary chat, even if rude or dumb."
     };
     const AXIS_COLORS = {
-      validity: ["#2f80ed", "#eaf3ff"],
-      literal_alignment: ["#9b51e0", "#f3eaff"],
-      magnitude_distortion: ["#f2994a", "#fff3e8"],
-      play_frame: ["#27ae60", "#e9f8ef"],
-      masking_facework: ["#eb5757", "#ffeded"],
-      hostility: ["#d97706", "#fff2d9"],
-      shock_attention: ["#e84393", "#ffeaf5"]
+      validity: { light: ["#2f80ed", "#eaf3ff"], dark: ["#7db7ff", "#10283d"] },
+      literal_alignment: { light: ["#9b51e0", "#f3eaff"], dark: ["#c59cff", "#291b3d"] },
+      magnitude_distortion: { light: ["#f2994a", "#fff3e8"], dark: ["#ffb56b", "#3a2714"] },
+      play_frame: { light: ["#27ae60", "#e9f8ef"], dark: ["#5be28b", "#14321f"] },
+      masking_facework: { light: ["#eb5757", "#ffeded"], dark: ["#ff8a8a", "#3a1719"] },
+      hostility: { light: ["#d97706", "#fff2d9"], dark: ["#ffb84d", "#39270d"] },
+      shock_attention: { light: ["#e84393", "#ffeaf5"], dark: ["#ff88c8", "#3b1830"] }
     };
     const USER_COLORS = [
       "#ff4f5f", "#ff9f1c", "#ffd166", "#06d6a0", "#2ee86f", "#00d1ff",
@@ -733,8 +734,9 @@ INDEX_HTML = r"""<!doctype html>
 
     function applyTheme(theme) {
       document.documentElement.dataset.theme = theme;
-      localStorage.setItem("reviewQueueTheme", theme);
-      $("themeBtn").textContent = theme === "dark" ? "Light" : "Dark";
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+      $("themeBtn").textContent = theme === "dark" ? "Light mode" : "Dark mode";
+      applyAxisColor(state.items[state.index]);
     }
 
     function setSaveStatus(text) {
@@ -787,7 +789,9 @@ INDEX_HTML = r"""<!doctype html>
 
     function applyAxisColor(item) {
       const axis = item && item.subject && item.subject.axis;
-      const [strong, weak] = AXIS_COLORS[axis] || ["var(--accent)", "var(--accent-weak)"];
+      const theme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+      const colors = AXIS_COLORS[axis];
+      const [strong, weak] = colors ? (colors[theme] || colors.light) : ["var(--accent)", "var(--accent-weak)"];
       document.documentElement.style.setProperty("--axis", strong);
       document.documentElement.style.setProperty("--axis-weak", weak);
     }
@@ -845,6 +849,20 @@ INDEX_HTML = r"""<!doctype html>
     function optionHelp(item, option) {
       const help = item && item.option_help;
       return help && help[option] ? help[option] : "";
+    }
+
+    function hideChoiceHelp() {
+      document.querySelectorAll(".choice-help-pop.visible").forEach(pop => {
+        pop.classList.remove("visible");
+      });
+    }
+
+    function showChoiceHelp(btn) {
+      hideChoiceHelp();
+      const pop = btn.nextElementSibling;
+      if (pop && pop.classList.contains("choice-help-pop")) {
+        pop.classList.add("visible");
+      }
     }
 
     function renderSubject(item) {
@@ -1020,19 +1038,24 @@ INDEX_HTML = r"""<!doctype html>
         const shortcut = CHOICE_KEYS[idx] || String(idx + 1);
         const key = shortcut ? `<span class="key">${escapeHtml(shortcut.toUpperCase())}</span>` : "";
         const help = optionHelp(item, option);
-        const hint = help ? `<button type="button" class="choice-help-btn" data-help-index="${idx}" title="${escapeHtml(help)}" aria-label="Explain ${escapeHtml(optionLabel(item, option))}">?</button>` : "";
+        const hint = help ? `<button type="button" class="choice-help-btn" aria-describedby="choiceHelp-${idx}" aria-label="Explain ${escapeHtml(optionLabel(item, option))}">?</button>` : "";
         const pop = help ? `<div class="choice-help-pop" id="choiceHelp-${idx}">${escapeHtml(help)}</div>` : "";
         return `<div class="choice-row"><button class="choice-answer" data-option-index="${idx}">${key}${escapeHtml(optionLabel(item, option))}</button>${hint}${pop}</div>`;
       }).join("");
       document.querySelectorAll("[data-option-index]").forEach(btn => {
         btn.addEventListener("click", () => answerChoice(Number(btn.dataset.optionIndex)));
       });
-      document.querySelectorAll("[data-help-index]").forEach(btn => {
+      document.querySelectorAll(".choice-help-btn").forEach(btn => {
+        btn.addEventListener("mouseenter", () => showChoiceHelp(btn));
+        btn.addEventListener("mouseleave", () => {
+          if (document.activeElement !== btn) hideChoiceHelp();
+        });
+        btn.addEventListener("focus", () => showChoiceHelp(btn));
+        btn.addEventListener("blur", hideChoiceHelp);
         btn.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
-          const pop = $(`choiceHelp-${btn.dataset.helpIndex}`);
-          if (pop) pop.classList.toggle("pinned");
+          showChoiceHelp(btn);
         });
       });
 
@@ -1282,6 +1305,9 @@ INDEX_HTML = r"""<!doctype html>
       state.guidanceOpen = !state.guidanceOpen;
       render();
     });
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".choice-help-btn")) hideChoiceHelp();
+    });
 
     document.addEventListener("keydown", (event) => {
       const tag = event.target.tagName.toLowerCase();
@@ -1306,7 +1332,7 @@ INDEX_HTML = r"""<!doctype html>
       applyTheme(current === "dark" ? "light" : "dark");
     });
 
-    applyTheme(localStorage.getItem("reviewQueueTheme") || "light");
+    applyTheme(localStorage.getItem(THEME_STORAGE_KEY) || "dark");
     loadQueues();
   </script>
 </body>
