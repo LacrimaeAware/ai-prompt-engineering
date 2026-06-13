@@ -731,16 +731,16 @@ INDEX_HTML = r"""<!doctype html>
       validity: "Validity",
       literal_alignment: "Literal alignment",
       magnitude_distortion: "Magnitude distortion",
-      play_frame: "Seriousness / bit frame",
+      play_frame: "Roleplay / performed stance",
       masking_facework: "Masking / facework",
       hostility: "Hostility",
       shock_attention: "Shock / attention"
     };
     const AXIS_HELP = {
-      validity: "Is a person trying to communicate something interpretable to another person or the chat? Valid includes normal text, emotes, action shorthand, ASCII/image posts, and bot-directed messages when they still reveal the person's intent. Not valid means bot/mod output, boilerplate command output, pure noise, or no decipherable semantic/social content.",
-      literal_alignment: "Does the intended direction match the message's conventional meaning, with no hidden reversal? Judge the main proposition/stance, not every imprecise detail. Figurative or auxiliary wording can still be aligned when the overall claim points the same way. Hyperbole is usually aligned; magnitude distortion is a different axis.",
-      magnitude_distortion: "Magnitude is a distortion scale. Understated is negative distortion, zero means normal strength or no meaningful magnitude to judge, and overstated is positive distortion/hyperbole. This axis is separate from literal alignment.",
-      play_frame: "Serious/plain = straightforward or no bit-frame. Bit/unserious = performed as a joke, riff, or unserious chat move. Bit-as-cover = the bit form covers aggression, status, criticism, or a risky stance.",
+      validity: "Is this useful as human chat data for the bot/classifier? Valid means a person is communicating interpretable semantic or social content. This can include text, emotes, action shorthand, ASCII/image posts, or bot-directed messages when they reveal intent/personality. Not valid means bot/mod output, command boilerplate, pure noise, or no decipherable chat meaning.",
+      literal_alignment: "Where does the real meaning live? Aligned means the main intended meaning is on the surface layer: the surface/conventional reading carries the point. Divergent means the real point lives in a second layer: hidden implication, reversal, sarcasm, role-framing, or subtext is more important than the surface wording. Judge the main claim/stance, not every imprecise auxiliary detail.",
+      magnitude_distortion: "Magnitude compares outward expressed intensity to likely intended/internal intensity. Understated means outward intensity is lower than the implied/internal intensity. Zero means normal strength or no magnitude to judge. Overstated means outward intensity is higher than intended/internal intensity: hyperbole.",
+      play_frame: "Is the speaker adopting a performed role, voice, emotion, or social stance for effect? This is about transparency of stance, not magnitude. Normal emote/slang use is zero unless it clearly creates a performed persona or fake stance.",
       masking_facework: "Absent = no obvious cover. Possible/present = humor or irony seems to launder criticism, aggression, status, or a socially risky stance.",
       hostility: "Low/none = not hostile. Mild/mock = teasing, mockery, casual insult. Present = direct hostility or aggressive attack.",
       shock_attention: "Present = shock value or attention-bid energy is the point. Low/none = ordinary chat, even if rude or dumb."
