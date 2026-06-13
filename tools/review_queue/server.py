@@ -384,6 +384,24 @@ INDEX_HTML = r"""<!doctype html>
       margin-top: 14px;
     }
 
+    .left-choices {
+      margin-top: 2px;
+      padding: 10px 10px 12px;
+      border: 1px solid color-mix(in srgb, var(--axis) 22%, var(--line));
+      border-radius: 8px;
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--axis-weak) 76%, var(--panel)) 0%,
+          color-mix(in srgb, var(--axis-weak) 42%, var(--panel)) 100%
+        );
+    }
+
+    .review-left .choices {
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      margin-top: 8px;
+    }
+
     button {
       border: 1px solid var(--line);
       border-radius: 7px;
@@ -487,7 +505,15 @@ INDEX_HTML = r"""<!doctype html>
       border: 1px solid color-mix(in srgb, var(--axis) 35%, var(--line));
       border-radius: 8px;
       background:
-        linear-gradient(180deg, color-mix(in srgb, var(--axis-weak) 72%, var(--panel)) 0, var(--panel) 240px);
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--axis-weak) 88%, var(--panel)) 0%,
+          color-mix(in srgb, var(--axis-weak) 54%, var(--panel)) 11%,
+          var(--panel) 34%,
+          var(--panel) 62%,
+          color-mix(in srgb, var(--axis-weak) 50%, var(--panel)) 88%,
+          color-mix(in srgb, var(--axis-weak) 82%, var(--panel)) 100%
+        );
       box-shadow: var(--shadow);
       padding: 14px;
     }
@@ -501,10 +527,6 @@ INDEX_HTML = r"""<!doctype html>
       max-height: calc(100vh - 86px);
     }
 
-    .review-right .choices {
-      margin-top: 8px;
-    }
-
     .right-scroll {
       overflow: auto;
       flex: 1;
@@ -512,11 +534,36 @@ INDEX_HTML = r"""<!doctype html>
       padding-right: 2px;
     }
 
-    .choice-help {
-      float: right;
+    .choice-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 7px;
+      align-items: stretch;
+    }
+
+    .choice-answer {
+      width: 100%;
+    }
+
+    .choice-help-btn {
+      width: 34px;
+      min-width: 34px;
+      min-height: 42px;
+      padding: 0;
+      text-align: center;
+      font-weight: 900;
       color: var(--muted);
-      font-weight: 800;
-      margin-left: 8px;
+      background: var(--control-alt);
+    }
+
+    .choice-help-pop {
+      grid-column: 1 / -1;
+      border: 1px solid color-mix(in srgb, var(--axis) 22%, var(--line));
+      border-radius: 7px;
+      background: color-mix(in srgb, var(--axis-weak) 54%, var(--panel));
+      color: var(--text);
+      padding: 9px 10px;
+      font-size: 13px;
     }
 
     pre {
@@ -588,15 +635,16 @@ INDEX_HTML = r"""<!doctype html>
             </div>
             <div class="details-box hidden" id="subjectDetails"></div>
           </div>
+          <div class="left-choices">
+            <div class="section-title">Choices</div>
+            <div class="choices" id="choices"></div>
+          </div>
         </section>
 
         <aside class="review-right" id="reviewRight">
           <div class="right-scroll" id="rightScroll">
             <div class="status-row" id="status"></div>
             <div class="muted small" id="saveStatus"></div>
-
-            <div class="section-title">Choices</div>
-            <div class="choices" id="choices"></div>
 
             <div class="note-area">
               <label class="small muted" for="note">Your answer / notes</label>
@@ -647,16 +695,16 @@ INDEX_HTML = r"""<!doctype html>
       validity: "Validity",
       literal_alignment: "Literal alignment",
       magnitude_distortion: "Magnitude distortion",
-      play_frame: "Play frame",
+      play_frame: "Seriousness / bit frame",
       masking_facework: "Masking / facework",
       hostility: "Hostility",
       shock_attention: "Shock / attention"
     };
     const AXIS_HELP = {
       validity: "Should this row be eligible for semantic/intent training? Mark bot output, mod notices, pure links, pure ASCII/image text, command responses, and totally opaque fragments as not_valid. Short human messages can still be valid.",
-      literal_alignment: "Aligned = the intended stance points the same way as the literal words. Divergent = irony/reversal/gap. Not applicable = no real proposition, such as pure emotes or greetings. Unclear = there is a proposition, but intent is unknowable.",
+      literal_alignment: "Aligned = conventional chat meaning points the same way as the intended stance, including normal emote/action/greeting use. Divergent = irony/reversal/gap. Unclear = no stable meaning or you cannot tell.",
       magnitude_distortion: "Literal/normal = ordinary strength. Overstated = hyperbole or exaggerated magnitude. Understated = deliberately downplayed. This axis is separate from irony.",
-      play_frame: "Low/none = mostly plain serious talk. Playful = framed as a bit/joke. Masking-play = joke form appears to cover criticism, aggression, or status work.",
+      play_frame: "Serious/plain = straightforward or no bit-frame. Bit/unserious = performed as a joke, riff, or unserious chat move. Bit-as-cover = the bit form covers aggression, status, criticism, or a risky stance.",
       masking_facework: "Absent = no obvious cover. Possible/present = humor or irony seems to launder criticism, aggression, status, or a socially risky stance.",
       hostility: "Low/none = not hostile. Mild/mock = teasing, mockery, casual insult. Present = direct hostility or aggressive attack.",
       shock_attention: "Present = shock value or attention-bid energy is the point. Low/none = ordinary chat, even if rude or dumb."
@@ -721,7 +769,7 @@ INDEX_HTML = r"""<!doctype html>
 
     function displayQuestion(item) {
       const axis = item && item.subject && item.subject.axis;
-      return AXIS_TITLES[axis] || item.question || "(no question)";
+      return item.question || AXIS_TITLES[axis] || "(no question)";
     }
 
     function guidanceText(item) {
@@ -965,11 +1013,20 @@ INDEX_HTML = r"""<!doctype html>
         const shortcut = CHOICE_KEYS[idx] || String(idx + 1);
         const key = shortcut ? `<span class="key">${escapeHtml(shortcut.toUpperCase())}</span>` : "";
         const help = optionHelp(item, option);
-        const hint = help ? `<span class="choice-help" title="${escapeHtml(help)}">?</span>` : "";
-        return `<button data-option-index="${idx}" title="${escapeHtml(help)}">${key}${escapeHtml(optionLabel(item, option))}${hint}</button>`;
+        const hint = help ? `<button type="button" class="choice-help-btn" data-help-index="${idx}" aria-label="Explain ${escapeHtml(optionLabel(item, option))}">?</button>` : "";
+        const pop = help ? `<div class="choice-help-pop hidden" id="choiceHelp-${idx}">${escapeHtml(help)}</div>` : "";
+        return `<div class="choice-row"><button class="choice-answer" data-option-index="${idx}">${key}${escapeHtml(optionLabel(item, option))}</button>${hint}${pop}</div>`;
       }).join("");
       document.querySelectorAll("[data-option-index]").forEach(btn => {
         btn.addEventListener("click", () => answerChoice(Number(btn.dataset.optionIndex)));
+      });
+      document.querySelectorAll("[data-help-index]").forEach(btn => {
+        btn.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const pop = $(`choiceHelp-${btn.dataset.helpIndex}`);
+          if (pop) pop.classList.toggle("hidden");
+        });
       });
 
       $("note").value = item.answer_note || "";
