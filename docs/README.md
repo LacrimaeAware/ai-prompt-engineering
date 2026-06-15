@@ -4,6 +4,10 @@ This folder is the public documentation tree for the AI prompt engineering
 library. It holds reusable instructions, examples, maintenance notes, and tool
 specs for AI-assisted writing, coding, documentation, and public showcase work.
 
+Treat this index and the linked docs as the durable public source of truth.
+Treat `../CURRENT_STATE.md` as the dated re-entry handoff for the latest
+verified pass.
+
 The central rule:
 
 > Do the requested work. Do not perform the instructions out loud inside the

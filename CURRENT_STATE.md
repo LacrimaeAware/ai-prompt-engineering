@@ -1,10 +1,14 @@
 # Current State
 
-Date: 2026-06-13
+Date: 2026-06-15
 
 This repo is a public-facing prompt engineering library. Its job is to capture
 the recurring AI failure modes, tone preferences, privacy rules, review
 workflows, and reusable prompt blocks that should guide future AI-assisted work.
+
+Treat `docs/README.md` and the linked docs tree as the durable public source of
+truth. This file is the dated re-entry handoff for the latest verified repo
+state.
 
 The central rule remains:
 
@@ -45,6 +49,13 @@ docs/
 
 Root files are limited to the README, license, and the current-state handoff.
 
+Freshness audit verified on 2026-06-15:
+
+- `git pull --ff-only`: already up to date on `main`
+- ignored private folders still contain queues, exports, and handoffs
+- `python -m py_compile tools/review_queue/server.py`: passed
+- public-safe demo queue smoke test passed on `/api/queues` and `/api/items`
+
 ## Review Queue Tool
 
 The review queue prototype lives in:
@@ -79,7 +90,8 @@ tools/review_queue/samples/demo_queue.jsonl
 
 The current interaction model:
 
-- `1` through `9`: choose visible answer options.
+- `Q` through `O`, or configured option keys: choose visible answer options.
+- `1` through `9`: fallback choice shortcuts.
 - `A`: previous card.
 - `S`: park the current card and move next.
 - `D`: next card.

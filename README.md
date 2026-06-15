@@ -6,11 +6,15 @@ methodologically disciplined.
 
 Start here:
 
-- [CURRENT_STATE.md](CURRENT_STATE.md)
 - [docs/README.md](docs/README.md)
 - [docs/instructions/00-core-directives.md](docs/instructions/00-core-directives.md)
 - [docs/examples/bad-good-examples.md](docs/examples/bad-good-examples.md)
 - [docs/ROADMAP.md](docs/ROADMAP.md)
+- [CURRENT_STATE.md](CURRENT_STATE.md)
+
+Use [docs/README.md](docs/README.md) as the durable public documentation map.
+Use [CURRENT_STATE.md](CURRENT_STATE.md) as the dated re-entry handoff for the
+latest verified maintenance pass.
 
 Project layout:
 

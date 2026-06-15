@@ -58,6 +58,19 @@ git check-ignore -v dropoff/review_exports/latest_all_review_queues.md private_d
 
 ```powershell
 python -m py_compile tools/review_queue/server.py
+$proc = Start-Process python -ArgumentList 'tools/review_queue/server.py --queue-dir tools/review_queue/samples --port 8992' -WorkingDirectory '.' -WindowStyle Hidden -PassThru
+try {
+  Start-Sleep -Seconds 2
+  Invoke-RestMethod "http://127.0.0.1:8992/api/queues"
+  Invoke-RestMethod "http://127.0.0.1:8992/api/items?queue=demo_queue.jsonl"
+} finally {
+  if ($proc -and !$proc.HasExited) { Stop-Process -Id $proc.Id }
+}
+```
+
+For a manual UI check, run:
+
+```powershell
 python tools/review_queue/server.py
 ```
 
@@ -102,7 +115,7 @@ git push
 - The review queue prototype works, but v2 should write per-answer results
   incrementally into ignored result folders so producer repos do not need a
   manual export step.
-- A public-safe sample queue would make the tool demonstrable without exposing
-  private material.
+- Keep the public-safe demo queue aligned with the live UI and API so smoke
+  tests stay useful.
 - Prompt packs under `docs/packs/` are still planned.
 - A lightweight lint/check script would make freshness checks less manual.

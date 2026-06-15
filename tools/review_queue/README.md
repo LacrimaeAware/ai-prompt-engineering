@@ -2,7 +2,8 @@
 
 Local human-in-the-loop review app for JSONL question queues.
 
-Current version: local prototype.
+Current version: local prototype with a public-safe demo queue and local JSON
+API endpoints.
 
 Planned v2: folder-based queues with incremental per-answer result files.
 
@@ -38,7 +39,8 @@ http://127.0.0.1:8992
 
 Controls:
 
-- `1` through `9`: choose visible options.
+- `Q` through `O`, or configured option keys: choose visible options.
+- `1` through `9`: fallback choice shortcuts.
 - `A`: previous card.
 - `S`: park this card and move next.
 - `D`: next card.
@@ -51,6 +53,23 @@ Controls:
 - Switching queues saves the current note first.
 - `All review queues` shows every queue together while still saving answers back
   to the original JSONL file.
+
+Lightweight verification:
+
+```powershell
+python -m py_compile tools/review_queue/server.py
+```
+
+```powershell
+python tools/review_queue/server.py --queue-dir tools/review_queue/samples --port 8992
+```
+
+Then check:
+
+```text
+http://127.0.0.1:8992/api/queues
+http://127.0.0.1:8992/api/items?queue=demo_queue.jsonl
+```
 
 Use `Send everything so far` to write Markdown to:
 
