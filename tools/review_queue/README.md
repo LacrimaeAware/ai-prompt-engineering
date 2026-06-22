@@ -61,14 +61,14 @@ python -m py_compile tools/review_queue/server.py
 ```
 
 ```powershell
-python tools/review_queue/server.py --queue-dir tools/review_queue/samples --port 8992
-```
-
-Then check:
-
-```text
-http://127.0.0.1:8992/api/queues
-http://127.0.0.1:8992/api/items?queue=demo_queue.jsonl
+$proc = Start-Process python -ArgumentList 'tools/review_queue/server.py --queue-dir tools/review_queue/samples --port 8992' -WorkingDirectory '.' -WindowStyle Hidden -PassThru
+try {
+  Start-Sleep -Seconds 2
+  Invoke-RestMethod "http://127.0.0.1:8992/api/queues"
+  Invoke-RestMethod "http://127.0.0.1:8992/api/items?queue=demo_queue.jsonl"
+} finally {
+  if ($proc -and !$proc.HasExited) { Stop-Process -Id $proc.Id }
+}
 ```
 
 Use `Send everything so far` to write Markdown to:

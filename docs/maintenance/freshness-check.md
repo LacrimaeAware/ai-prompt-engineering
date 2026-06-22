@@ -54,6 +54,9 @@ rg -n "[A-Za-z]:\\\\|\\.env|token|secret|API key|raw log|private quote" -g "!pri
 git check-ignore -v dropoff/review_exports/latest_all_review_queues.md private_docs/review_queues/*.jsonl
 ```
 
+Policy or checklist mentions of these terms are expected. Investigate concrete
+paths, usernames, payloads, quotes, or secrets rather than the rule text itself.
+
 5. Verify the review queue tool.
 
 ```powershell

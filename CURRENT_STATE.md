@@ -1,6 +1,6 @@
 # Current State
 
-Date: 2026-06-15
+Date: 2026-06-22
 
 This repo is a public-facing prompt engineering library. Its job is to capture
 the recurring AI failure modes, tone preferences, privacy rules, review
@@ -9,6 +9,10 @@ workflows, and reusable prompt blocks that should guide future AI-assisted work.
 Treat `docs/README.md` and the linked docs tree as the durable public source of
 truth. This file is the dated re-entry handoff for the latest verified repo
 state.
+
+No tracked commits landed after the 2026-06-15 pass. The 2026-06-22 freshness
+audit reconfirmed the public docs, privacy boundaries, and review queue tool
+without changing repo behavior.
 
 The central rule remains:
 
@@ -49,12 +53,15 @@ docs/
 
 Root files are limited to the README, license, and the current-state handoff.
 
-Freshness audit verified on 2026-06-15:
+Freshness audit verified on 2026-06-22:
 
 - `git pull --ff-only`: already up to date on `main`
+- `git log --oneline --decorate -1`: still `5213264` (`Refresh documentation state`)
 - ignored private folders still contain queues, exports, and handoffs
 - `python -m py_compile tools/review_queue/server.py`: passed
 - public-safe demo queue smoke test passed on `/api/queues` and `/api/items`
+- live ignored queue counts still match the last pass: 127 total, 89 answered,
+  35 pending, 3 parked
 
 ## Review Queue Tool
 
@@ -193,7 +200,7 @@ Highest-value next steps:
 4. Improve the review queue result loop so producer repos can consume answered
    queues incrementally.
 5. Decide whether this repo needs a GitHub Pages site or whether the README is
-   enough for now.
+   enough for now. Do not enable Pages unless explicitly requested.
 6. Keep the weekly freshness automation active or update it when the repo's
    maintenance checklist changes.
 

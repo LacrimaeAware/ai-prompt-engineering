@@ -154,7 +154,7 @@ Keep the repo easy to resume after breaks:
 
 ## Phase 8: Maintenance automation
 
-Status: started.
+Status: active weekly audit.
 
 The automation should periodically:
 
@@ -163,4 +163,5 @@ The automation should periodically:
 - verify the review queue server compiles
 - scan public docs for privacy and stale-path issues
 - update state/roadmap docs if the repo drifted
+- refresh the dated handoff even when no tracked repo behavior changed
 - commit and push only public-safe changes
