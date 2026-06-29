@@ -1,6 +1,6 @@
 # Current State
 
-Date: 2026-06-22
+Date: 2026-06-29
 
 This repo is a public-facing prompt engineering library. Its job is to capture
 the recurring AI failure modes, tone preferences, privacy rules, review
@@ -10,7 +10,7 @@ Treat `docs/README.md` and the linked docs tree as the durable public source of
 truth. This file is the dated re-entry handoff for the latest verified repo
 state.
 
-No tracked commits landed after the 2026-06-15 pass. The 2026-06-22 freshness
+No tracked commits landed after the 2026-06-22 pass. The 2026-06-29 freshness
 audit reconfirmed the public docs, privacy boundaries, and review queue tool
 without changing repo behavior.
 
@@ -53,10 +53,10 @@ docs/
 
 Root files are limited to the README, license, and the current-state handoff.
 
-Freshness audit verified on 2026-06-22:
+Freshness audit verified on 2026-06-29:
 
 - `git pull --ff-only`: already up to date on `main`
-- `git log --oneline --decorate -1`: still `5213264` (`Refresh documentation state`)
+- `git log --oneline --decorate -1`: still `467c708` (`Refresh documentation state`)
 - ignored private folders still contain queues, exports, and handoffs
 - `python -m py_compile tools/review_queue/server.py`: passed
 - public-safe demo queue smoke test passed on `/api/queues` and `/api/items`
